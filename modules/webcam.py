@@ -3,10 +3,10 @@ import time
 
 
 class Webcam:
-    def __init__(self, cam_id=0):
-        self.cap = cv2.VideoCapture(cam_id, cv2.CAP_AVFOUNDATION)  # CAP_AVFOUNDATION 백엔드를 사용
-        # self.cap.set(3, width)
-        # self.cap.set(4, height)
+    def __init__(self, cam_id=0, width=1280, height=720):
+        self.cap = cv2.VideoCapture(cam_id)  # CAP_AVFOUNDATION 백엔드를 사용
+        self.cap.set(3, width)
+        self.cap.set(4, height)
         if not self.cap.isOpened():
             raise Exception("Failed to read the frame. Check the webcam connection.")
         self.previous_time = time.time()

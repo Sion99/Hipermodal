@@ -28,6 +28,8 @@ class HandGestureController:
         self.dragging = False
         self.click_interval = click_interval
         self.prev_finger_pos = None
+        self.frame_queue = deque(maxlen=60)
+        self.frame = None
         self.mouse_sensitivity = mouse_sensitivity
         self.scroll_sensitivity = scroll_sensitivity
         self.thumb_index_distance = 1
@@ -40,6 +42,7 @@ class HandGestureController:
         self.cap = Webcam()
         self.recognition_active = False
         self.running = False
+        self.frame_lock = threading.Lock()  # Lock for frame synchronization
 
     def calculate_distance(self, point1, point2):
         return np.linalg.norm(np.array(point1) - np.array(point2))
@@ -119,14 +122,44 @@ class HandGestureController:
 
     def run(self):
         self.running = True
-        while self.running:
-            try:
-                frame = self.cap.get_frame()
-            except Exception as e:
-                break
 
-            if self.recognition_active:
-                img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        capture_thread = threading.Thread(target=self.capture_frames)
+        capture_thread.daemon = True
+        capture_thread.start()
+
+        process_thread = threading.Thread(target=self.process_frames)
+        process_thread.daemon = True
+        process_thread.start()
+
+        try:
+            while self.running:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            self.running = False
+            capture_thread.join()
+            process_thread.join()
+
+        self.cap.release()
+        cv2.destroyAllWindows()
+
+    def capture_frames(self):
+        while self.running:
+            frame = self.cap.get_frame()
+            if frame is not None:
+                with self.frame_lock:
+                    if len(self.frame_queue) == self.frame_queue.maxlen:
+                        self.frame_queue.popleft()
+                    self.frame_queue.append(frame)
+            time.sleep(0.01)  # Slight delay to reduce CPU usage
+
+    def process_frames(self):
+        while self.running:
+            with self.frame_lock:
+                if self.frame_queue:
+                    self.frame = self.frame_queue[-1]  # Get the latest frame
+
+            if self.recognition_active and self.frame is not None:
+                img_rgb = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
                 result = self.hands.process(img_rgb)
                 if result.multi_hand_landmarks:
                     for i, hand_landmarks in enumerate(result.multi_hand_landmarks):
@@ -138,15 +171,17 @@ class HandGestureController:
                         handedness = result.multi_handedness[i].classification[0].label
 
                         if most_common_gesture in ['move', 'drag', 'scroll']:
-                            thread = threading.Thread(target=self.perform_mouse_action,
-                                                      args=(most_common_gesture, hand_landmarks.landmark, handedness))
-                            thread.start()
+                            io_thread = threading.Thread(target=self.perform_mouse_action,
+                                                         args=(
+                                                         most_common_gesture, hand_landmarks.landmark, handedness))
+                            io_thread.start()
                         else:
                             self.perform_click_action(most_common_gesture)
+            time.sleep(0.01)  # Slight delay to reduce CPU usage
 
     def get_frame(self):
-        return self.cap.get_frame()
+        with self.frame_lock:
+            return self.frame
 
     def stop(self):
         self.running = False
-        self.cap.release()

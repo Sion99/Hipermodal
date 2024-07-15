@@ -127,5 +127,4 @@ class VideoWidget(QWidget):
     def closeEvent(self, event):
         self.gesture_thread.stop()
         self.gesture_thread.wait()
-        self.speech_recognition.stop_recognition()
         event.accept()
