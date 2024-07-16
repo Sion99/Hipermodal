@@ -3,7 +3,7 @@ import time
 
 
 class Webcam:
-    def __init__(self, cam_id=0, width=1280, height=720):
+    def __init__(self, cam_id=0, width=720, height=480):
         self.cap = cv2.VideoCapture(cam_id)  # CAP_AVFOUNDATION 백엔드를 사용
         self.cap.set(3, width)
         self.cap.set(4, height)

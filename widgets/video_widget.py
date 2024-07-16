@@ -60,20 +60,35 @@ class VideoWidget(QWidget):
         scroll_sensitivity_layout.addWidget(self.scroll_sensitivity_slider)
         scroll_sensitivity_layout.addWidget(self.scroll_sensitivity_value_label)
 
+        # Poll Rate
+        self.poll_rate_label = QLabel("Polling Rate")
+        self.poll_rate_slider = QScrollBar(Qt.Horizontal)
+        self.poll_rate_slider.setMinimum(1)
+        self.poll_rate_slider.setMaximum(100)
+        self.poll_rate_slider.setValue(self.scale_poll_rate(self.gesture_thread.hand_gesture_controller.poll_rate))
+        self.poll_rate_slider.valueChanged.connect(self.update_poll_rate)
+        self.poll_rate_value_label = QLabel(f"{self.gesture_thread.hand_gesture_controller.poll_rate:.3f} s")
+
+        poll_rate_layout = QHBoxLayout()
+        poll_rate_layout.addWidget(self.poll_rate_slider)
+        poll_rate_layout.addWidget(self.poll_rate_value_label)
+
         # Adding to control layout
         self.control_layout.addWidget(self.mouse_sensitivity_label, 0, 0)
         self.control_layout.addLayout(mouse_sensitivity_layout, 0, 1)
         self.control_layout.addWidget(self.scroll_sensitivity_label, 1, 0)
         self.control_layout.addLayout(scroll_sensitivity_layout, 1, 1)
+        self.control_layout.addWidget(self.poll_rate_label, 2, 0)
+        self.control_layout.addLayout(poll_rate_layout, 2, 1)
 
         # Status labels
         self.fps_label = QLabel("FPS: 0")
         self.delay_label = QLabel("DELAY: 0 ms")
         self.last_action_label = QLabel("Last Action: None")
 
-        self.control_layout.addWidget(self.fps_label, 2, 0)
-        self.control_layout.addWidget(self.delay_label, 2, 1)
-        self.control_layout.addWidget(self.last_action_label, 3, 0, 1, 2)
+        self.control_layout.addWidget(self.fps_label, 3, 0)
+        self.control_layout.addWidget(self.delay_label, 3, 1)
+        self.control_layout.addWidget(self.last_action_label, 4, 0, 1, 2)
 
         self.control_panel.setLayout(self.control_layout)
         self.layout.addWidget(self.control_panel)
@@ -86,11 +101,17 @@ class VideoWidget(QWidget):
     def scale_scroll_sensitivity(self, sensitivity):
         return int((sensitivity - 0.1) * 100 / 1.4)
 
+    def scale_poll_rate(self, poll_rate):
+        return int((poll_rate - 0.001) * 100 / 0.009)
+
     def inverse_scale_mouse_sensitivity(self, value):
         return 0.1 + value * 2.8 / 100
 
     def inverse_scale_scroll_sensitivity(self, value):
         return 0.1 + value * 1.4 / 100
+
+    def inverse_scale_poll_rate(self, value):
+        return 0.001 + value * 0.009 / 100
 
     def update_mouse_sensitivity(self, value):
         sensitivity = self.inverse_scale_mouse_sensitivity(value)
@@ -101,6 +122,11 @@ class VideoWidget(QWidget):
         sensitivity = self.inverse_scale_scroll_sensitivity(value)
         self.gesture_thread.hand_gesture_controller.scroll_sensitivity = sensitivity
         self.scroll_sensitivity_value_label.setText(f"{sensitivity:.1f}")
+
+    def update_poll_rate(self, value):
+        poll_rate = self.inverse_scale_poll_rate(value)
+        self.gesture_thread.hand_gesture_controller.set_poll_rate(poll_rate)
+        self.poll_rate_value_label.setText(f"{poll_rate:.3f} s")
 
     def update_frame(self):
         try:

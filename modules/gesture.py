@@ -10,7 +10,7 @@ from modules.webcam import Webcam
 
 
 class HandGestureController:
-    def __init__(self, buffer_size=5, click_interval=0.3, mouse_sensitivity=0.6, scroll_sensitivity=0.2):
+    def __init__(self, buffer_size=15, click_interval=0.3, mouse_sensitivity=0.6, scroll_sensitivity=0.2, poll_rate=0.005):
         self.mp_hands = mp.solutions.hands
         self.hands = self.mp_hands.Hands(
             static_image_mode=False,
@@ -32,12 +32,14 @@ class HandGestureController:
         self.frame = None
         self.mouse_sensitivity = mouse_sensitivity
         self.scroll_sensitivity = scroll_sensitivity
+        self.poll_rate = poll_rate
         self.thumb_index_distance = 1
 
         pyautogui.FAILSAFE = False
         monitors = get_monitors()
         self.total_screen_width = sum(monitor.width for monitor in monitors)
         self.total_screen_height = max(monitor.height for monitor in monitors)
+        print(self.total_screen_width, 'x', self.total_screen_height)
 
         self.cap = Webcam()
         self.recognition_active = False
@@ -172,16 +174,18 @@ class HandGestureController:
 
                         if most_common_gesture in ['move', 'drag', 'scroll']:
                             io_thread = threading.Thread(target=self.perform_mouse_action,
-                                                         args=(
-                                                         most_common_gesture, hand_landmarks.landmark, handedness))
+                                                         args=(most_common_gesture, hand_landmarks.landmark, handedness))
                             io_thread.start()
                         else:
                             self.perform_click_action(most_common_gesture)
-            time.sleep(0.01)  # Slight delay to reduce CPU usage
+            time.sleep(self.poll_rate)  # Use the poll rate for sleep time
 
     def get_frame(self):
         with self.frame_lock:
             return self.frame
+
+    def set_poll_rate(self, value):
+        self.poll_rate = value
 
     def stop(self):
         self.running = False
