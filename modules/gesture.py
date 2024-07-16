@@ -108,7 +108,7 @@ class HandGestureController:
                     self.dragging = True
                 pyautogui.moveRel(dx, dy)
             elif gesture == 'scroll':
-                pyautogui.scroll(-dy * self.scroll_sensitivity)
+                pyautogui.scroll(int(-dy * self.scroll_sensitivity))
             elif self.dragging:
                 pyautogui.mouseUp()
                 self.dragging = False
