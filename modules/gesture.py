@@ -28,6 +28,7 @@ class HandGestureController:
         self.dragging = False
         self.click_interval = click_interval
         self.prev_finger_pos = None
+        self.standby_finger_pos = None
         self.frame_queue = deque(maxlen=60)
         self.frame = None
         self.mouse_sensitivity = mouse_sensitivity
@@ -87,6 +88,10 @@ class HandGestureController:
         mouse_x, mouse_y = pyautogui.position()
 
         if self.prev_finger_pos is not None:
+            if self.last_gesture == 'standby':
+                # Adjust the initial position based on the current finger position
+                self.prev_finger_pos = self.standby_finger_pos
+
             dx = (x - self.prev_finger_pos[0]) * self.total_screen_width * self.mouse_sensitivity
             dy = (y - self.prev_finger_pos[1]) * self.total_screen_height * self.mouse_sensitivity
 
@@ -171,6 +176,9 @@ class HandGestureController:
 
                         most_common_gesture = Counter(self.gesture_buffer).most_common(1)[0][0]
                         handedness = result.multi_handedness[i].classification[0].label
+
+                        if most_common_gesture == 'standby':
+                            self.standby_finger_pos = (hand_landmarks.landmark[8].x, hand_landmarks.landmark[8].y)
 
                         if most_common_gesture in ['move', 'drag', 'scroll']:
                             io_thread = threading.Thread(target=self.perform_mouse_action,
