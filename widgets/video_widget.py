@@ -32,6 +32,7 @@ class VideoWidget(QWidget):
 
         # Mouse Sensitivity
         self.mouse_sensitivity_label = QLabel("Mouse Sensitivity")
+        self.mouse_sensitivity_label.setToolTip('마우스 포인터 감도를 조절합니다.')
         self.mouse_sensitivity_slider = QScrollBar(Qt.Horizontal)
         self.mouse_sensitivity_slider.setMinimum(1)
         self.mouse_sensitivity_slider.setMaximum(100)
@@ -47,6 +48,7 @@ class VideoWidget(QWidget):
 
         # Scroll Sensitivity
         self.scroll_sensitivity_label = QLabel("Scroll Sensitivity")
+        self.scroll_sensitivity_label.setToolTip('스크롤 감도를 조절합니다.')
         self.scroll_sensitivity_slider = QScrollBar(Qt.Horizontal)
         self.scroll_sensitivity_slider.setMinimum(1)
         self.scroll_sensitivity_slider.setMaximum(100)
@@ -62,6 +64,7 @@ class VideoWidget(QWidget):
 
         # Poll Rate
         self.poll_rate_label = QLabel("Polling Rate")
+        self.poll_rate_label.setToolTip('마우스 반응속도를 조절합니다.')
         self.poll_rate_slider = QScrollBar(Qt.Horizontal)
         self.poll_rate_slider.setMinimum(1)
         self.poll_rate_slider.setMaximum(100)
@@ -84,7 +87,7 @@ class VideoWidget(QWidget):
         # Status labels
         self.fps_label = QLabel("FPS: 0")
         self.delay_label = QLabel("DELAY: 0 ms")
-        self.last_action_label = QLabel("Last Action: None")
+        self.last_action_label = QLabel("현재 제스처: None")
 
         self.control_layout.addWidget(self.fps_label, 3, 0)
         self.control_layout.addWidget(self.delay_label, 3, 1)
@@ -146,7 +149,7 @@ class VideoWidget(QWidget):
             fps, delay = self.gesture_thread.hand_gesture_controller.cap.calculate_fps_and_delay()
             self.fps_label.setText(f"FPS: {fps}")
             self.delay_label.setText(f"DELAY: {delay} ms")
-            self.last_action_label.setText(f"Last Action: {self.gesture_thread.hand_gesture_controller.last_gesture}")
+            self.last_action_label.setText(f"현재 제스처: {self.gesture_thread.hand_gesture_controller.last_gesture}")
         except Exception as e:
             print(f"Error in update_frame: {e}")
 

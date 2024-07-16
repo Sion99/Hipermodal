@@ -8,7 +8,13 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
 
+        self.setFixedSize(690, 800)
         self.setWindowTitle("Hiperwall Multimodal")
+
+        # Status Bar
+        self.statusBar().showMessage('프로그램 실행 완료', 3000)
+
+
         self.menuBar().setNativeMenuBar(False)  # macOS 에서만
         filemenu = self.menuBar().addMenu("&File")
 
@@ -40,8 +46,10 @@ class MainWindow(QMainWindow):
     def toggle_gesture_mode(self):
         if self.gesture_toggle_button.isChecked():
             self.video_widget.gesture_thread.start_gesture_recognition()
+            self.statusBar().showMessage('제스처 모드 ON', 3000)
         else:
             self.video_widget.gesture_thread.stop_gesture_recognition()
+            self.statusBar().showMessage('제스처 모드 OFF', 3000)
 
     # def toggle_speech_mode(self):
     #     if self.speech_toggle_button.isChecked():
@@ -50,6 +58,7 @@ class MainWindow(QMainWindow):
     #         self.video_widget.speech_recognition.stop_recognition()
 
     def closeEvent(self, event):
+        self.statusBar().showMessage('프로그램 종료 중... 잠시만 기다려주세요.')
         self.video_widget.closeEvent(event)
         event.accept()
 

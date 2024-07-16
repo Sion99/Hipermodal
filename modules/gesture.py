@@ -40,6 +40,8 @@ class HandGestureController:
         monitors = get_monitors()
         self.total_screen_width = sum(monitor.width for monitor in monitors)
         self.total_screen_height = max(monitor.height for monitor in monitors)
+        self.total_screen_width = 1512
+        self.total_screen_height = 982
         print(self.total_screen_width, 'x', self.total_screen_height)
 
         self.cap = Webcam()
@@ -131,11 +133,11 @@ class HandGestureController:
         self.running = True
 
         capture_thread = threading.Thread(target=self.capture_frames)
-        capture_thread.daemon = True
+        # capture_thread.daemon = True
         capture_thread.start()
 
         process_thread = threading.Thread(target=self.process_frames)
-        process_thread.daemon = True
+        # process_thread.daemon = True
         process_thread.start()
 
         try:
