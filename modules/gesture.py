@@ -79,10 +79,10 @@ class HandGestureController:
             return 'click'
         elif fingers_status == [1, 1, 1, 0, 0]:
             return 'drag'
-        elif self.scroll_mode:
-            return 'scroll'
         elif fingers_status == [1, 1, 1, 1, 1]:
             return 'move'
+        elif self.scroll_mode:
+            return 'scroll'
         return 'unknown'
 
     def perform_mouse_action(self, gesture, lmList, handedness):

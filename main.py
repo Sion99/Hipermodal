@@ -1,7 +1,6 @@
 import sys
 from PySide6.QtGui import QAction, QPainter, QColor, QCursor
-from PySide6.QtWidgets import QApplication, QMainWindow, QCheckBox, QVBoxLayout, QWidget, QLabel, QHBoxLayout, \
-    QGridLayout
+from PySide6.QtWidgets import QApplication, QMainWindow, QCheckBox, QVBoxLayout, QWidget, QLabel, QHBoxLayout, QGridLayout
 from PySide6.QtCore import Qt
 from widgets.video_widget import VideoWidget
 from widgets.speech_widget import SpeechWidget
@@ -134,6 +133,20 @@ class MainWindow(QMainWindow):
         self.container.setLayout(self.layout)
         self.setCentralWidget(self.container)
 
+        # 제스처 모드 단축키
+        self.gesture_shortcut = QAction('Toggle Gesture Mode', self)
+        self.gesture_shortcut.setShortcut('Ctrl+C')
+        self.gesture_shortcut.triggered.connect(self.toggle_gesture_mode_shortcut)
+        self.addAction(self.gesture_shortcut)
+        filemenu.addAction(self.gesture_shortcut)
+
+        # 음성 인식 단축키
+        self.speech_shortcut = QAction('Toggle Speech Mode', self)
+        self.speech_shortcut.setShortcut('Ctrl+V')
+        self.speech_shortcut.triggered.connect(self.toggle_speech_mode_shortcut)
+        self.addAction(self.speech_shortcut)
+        filemenu.addAction(self.speech_shortcut)
+
     def toggle_gesture_mode(self, state):
         if self.gesture_toggle_switch.isChecked():
             self.video_widget.gesture_thread.start_gesture_recognition()
@@ -150,13 +163,18 @@ class MainWindow(QMainWindow):
 
     def toggle_speech_mode(self, state):
         if self.speech_toggle_switch.isChecked():
-            # self.speech_widget.speech_recognition.start_recognition()
             self.mic_indicator.setVisible(True)
             self.statusBar().showMessage('음성 인식이 활성화되었습니다.', 3000)
         else:
-            # self.speech_widget.speech_recognition.stop_recognition()
             self.mic_indicator.setVisible(False)
             self.statusBar().showMessage('음성 인식이 비활성화되었습니다.', 3000)
+
+    def toggle_gesture_mode_shortcut(self):
+        self.gesture_toggle_switch.setChecked(not self.gesture_toggle_switch.isChecked())
+
+    def toggle_speech_mode_shortcut(self):
+        if self.speech_toggle_switch.isEnabled():
+            self.speech_toggle_switch.setChecked(not self.speech_toggle_switch.isChecked())
 
     def closeEvent(self, event):
         self.statusBar().showMessage('프로그램 종료 중... 잠시만 기다려주세요.')
