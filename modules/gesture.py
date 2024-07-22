@@ -10,7 +10,7 @@ from modules.webcam import Webcam
 
 
 class HandGestureController:
-    def __init__(self, buffer_size=15, click_interval=0.3, mouse_sensitivity=0.6, scroll_sensitivity=0.2, poll_rate=0.005):
+    def __init__(self, buffer_size=5, click_interval=0.3, mouse_sensitivity=1.5, scroll_sensitivity=0.8, poll_rate=0.0055):
         self.mp_hands = mp.solutions.hands
         self.hands = self.mp_hands.Hands(
             static_image_mode=False,

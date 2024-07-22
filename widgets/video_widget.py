@@ -1,5 +1,6 @@
+import sys
 import cv2
-from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QScrollBar, QHBoxLayout, QGridLayout
+from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QScrollBar, QHBoxLayout, QGridLayout, QErrorMessage
 from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtCore import QTimer, Qt
 from modules.gesture_thread import GestureThread
@@ -17,6 +18,7 @@ class VideoWidget(QWidget):
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_frame)
+        self.no_frame_count = 0
         self.timer.start(30)
 
     def init_ui(self):
@@ -30,17 +32,54 @@ class VideoWidget(QWidget):
         self.control_panel = QWidget()
         self.control_layout = QGridLayout()
 
+        label_style = """
+        QLabel {
+            font-size: 14px;
+            color: #333;
+        }
+        """
+
+        scrollbar_style = """
+        QScrollBar:horizontal {
+            border: 1px solid #999999;
+            background: #f0f0f0;
+            height: 12px;
+            margin: 0px 20px 0 20px;
+            border-radius: 6px;
+        }
+        QScrollBar::handle:horizontal {
+            background: #b0b0b0;
+            min-width: 20px;
+            border-radius: 6px;
+        }
+        QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+            border: none;
+            background: none;
+            width: 20px;
+            subcontrol-origin: margin;
+        }
+        QScrollBar::add-line:horizontal:hover, QScrollBar::sub-line:horizontal:hover {
+            background: #d0d0d0;
+        }
+        QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+            background: none;
+        }
+        """
+
         # Mouse Sensitivity
         self.mouse_sensitivity_label = QLabel("Mouse Sensitivity")
         self.mouse_sensitivity_label.setToolTip('마우스 포인터 감도를 조절합니다.')
+        self.mouse_sensitivity_label.setStyleSheet(label_style)
         self.mouse_sensitivity_slider = QScrollBar(Qt.Horizontal)
         self.mouse_sensitivity_slider.setMinimum(1)
         self.mouse_sensitivity_slider.setMaximum(100)
         self.mouse_sensitivity_slider.setValue(
             self.scale_mouse_sensitivity(self.gesture_thread.hand_gesture_controller.mouse_sensitivity))
         self.mouse_sensitivity_slider.valueChanged.connect(self.update_mouse_sensitivity)
+        self.mouse_sensitivity_slider.setStyleSheet(scrollbar_style)
         self.mouse_sensitivity_value_label = QLabel(
             f"{self.gesture_thread.hand_gesture_controller.mouse_sensitivity:.1f}")
+        self.mouse_sensitivity_value_label.setStyleSheet(label_style)
 
         mouse_sensitivity_layout = QHBoxLayout()
         mouse_sensitivity_layout.addWidget(self.mouse_sensitivity_slider)
@@ -49,14 +88,17 @@ class VideoWidget(QWidget):
         # Scroll Sensitivity
         self.scroll_sensitivity_label = QLabel("Scroll Sensitivity")
         self.scroll_sensitivity_label.setToolTip('스크롤 감도를 조절합니다.')
+        self.scroll_sensitivity_label.setStyleSheet(label_style)
         self.scroll_sensitivity_slider = QScrollBar(Qt.Horizontal)
         self.scroll_sensitivity_slider.setMinimum(1)
         self.scroll_sensitivity_slider.setMaximum(100)
         self.scroll_sensitivity_slider.setValue(
             self.scale_scroll_sensitivity(self.gesture_thread.hand_gesture_controller.scroll_sensitivity))
         self.scroll_sensitivity_slider.valueChanged.connect(self.update_scroll_sensitivity)
+        self.scroll_sensitivity_slider.setStyleSheet(scrollbar_style)
         self.scroll_sensitivity_value_label = QLabel(
             f"{self.gesture_thread.hand_gesture_controller.scroll_sensitivity:.1f}")
+        self.scroll_sensitivity_value_label.setStyleSheet(label_style)
 
         scroll_sensitivity_layout = QHBoxLayout()
         scroll_sensitivity_layout.addWidget(self.scroll_sensitivity_slider)
@@ -65,12 +107,15 @@ class VideoWidget(QWidget):
         # Poll Rate
         self.poll_rate_label = QLabel("Polling Rate")
         self.poll_rate_label.setToolTip('마우스 반응속도를 조절합니다.')
+        self.poll_rate_label.setStyleSheet(label_style)
         self.poll_rate_slider = QScrollBar(Qt.Horizontal)
         self.poll_rate_slider.setMinimum(1)
         self.poll_rate_slider.setMaximum(100)
         self.poll_rate_slider.setValue(self.scale_poll_rate(self.gesture_thread.hand_gesture_controller.poll_rate))
         self.poll_rate_slider.valueChanged.connect(self.update_poll_rate)
+        self.poll_rate_slider.setStyleSheet(scrollbar_style)
         self.poll_rate_value_label = QLabel(f"{self.gesture_thread.hand_gesture_controller.poll_rate:.3f} s")
+        self.poll_rate_value_label.setStyleSheet(label_style)
 
         poll_rate_layout = QHBoxLayout()
         poll_rate_layout.addWidget(self.poll_rate_slider)
@@ -85,12 +130,9 @@ class VideoWidget(QWidget):
         self.control_layout.addLayout(poll_rate_layout, 2, 1)
 
         # Status labels
-        self.fps_label = QLabel("FPS: 0")
-        self.delay_label = QLabel("DELAY: 0 ms")
         self.last_action_label = QLabel("현재 제스처: None")
+        self.last_action_label.setStyleSheet(label_style)
 
-        self.control_layout.addWidget(self.fps_label, 3, 0)
-        self.control_layout.addWidget(self.delay_label, 3, 1)
         self.control_layout.addWidget(self.last_action_label, 4, 0, 1, 2)
 
         self.control_panel.setLayout(self.control_layout)
@@ -135,7 +177,12 @@ class VideoWidget(QWidget):
         try:
             frame = self.gesture_thread.hand_gesture_controller.get_frame()
             if frame is None:
-                print("No frame captured")
+                if self.no_frame_count == 30:
+                    error_dialog = QErrorMessage()
+                    error_dialog.showMessage('카메라 연결상태를 확인하세요.')
+                elif self.no_frame_count < 30:
+                    print("No frame captured")
+                    self.no_frame_count += 1
                 return
 
             # OpenCV to QImage conversion
@@ -146,9 +193,6 @@ class VideoWidget(QWidget):
             self.video_label.setPixmap(QPixmap.fromImage(q_img))
 
             # Update status labels
-            fps, delay = self.gesture_thread.hand_gesture_controller.cap.calculate_fps_and_delay()
-            self.fps_label.setText(f"FPS: {fps}")
-            self.delay_label.setText(f"DELAY: {delay} ms")
             self.last_action_label.setText(f"현재 제스처: {self.gesture_thread.hand_gesture_controller.last_gesture}")
         except Exception as e:
             print(f"Error in update_frame: {e}")
@@ -157,3 +201,4 @@ class VideoWidget(QWidget):
         self.gesture_thread.stop()
         self.gesture_thread.wait()
         event.accept()
+

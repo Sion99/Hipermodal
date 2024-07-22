@@ -1,7 +1,59 @@
 import sys
-from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget
+from PySide6.QtGui import QAction, QPainter, QColor, QCursor
+from PySide6.QtWidgets import QApplication, QMainWindow, QCheckBox, QVBoxLayout, QWidget, QLabel, QHBoxLayout, \
+    QGridLayout
+from PySide6.QtCore import Qt
 from widgets.video_widget import VideoWidget
+from widgets.speech_widget import SpeechWidget
+
+
+class IndicatorLabel(QLabel):
+    def __init__(self, color, parent=None):
+        super().__init__(parent)
+        self.color = color
+        self.setFixedSize(15, 15)  # 원의 크기 조절
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setBrush(QColor(self.color))
+        painter.setPen(QColor(self.color))
+        painter.drawEllipse(0, 0, self.width(), self.height())
+
+
+class Switch(QCheckBox):
+    def __init__(self, parent=None):
+        super(Switch, self).__init__(parent)
+        self.setFixedSize(60, 30)
+        self.setCursor(QCursor(Qt.PointingHandCursor))
+        self.setStyleSheet('''
+            QCheckBox {
+                background-color: #ccc;
+                border-radius: 15px;
+                border: 2px solid #ccc;
+                width: 60px;
+                height: 30px;
+                padding: 0;
+                margin: 0;
+            }
+            QCheckBox::indicator {
+                width: 26px;
+                height: 26px;
+                border-radius: 13px;
+                background-color: white;
+                position: absolute;
+                left: 1px;
+                top: 1px;
+                transition: all .3s;
+            }
+            QCheckBox::indicator:checked {
+                left: 32px;
+            }
+            QCheckBox:checked {
+                background-color: #66bb6a;
+                border: 2px solid #66bb6a;
+            }
+        ''')
 
 
 class MainWindow(QMainWindow):
@@ -14,7 +66,6 @@ class MainWindow(QMainWindow):
         # Status Bar
         self.statusBar().showMessage('프로그램 실행 완료', 3000)
 
-
         self.menuBar().setNativeMenuBar(False)  # macOS 에서만
         filemenu = self.menuBar().addMenu("&File")
 
@@ -25,37 +76,87 @@ class MainWindow(QMainWindow):
         filemenu.addAction(exitAction)
 
         self.video_widget = VideoWidget()
+        self.speech_widget = SpeechWidget()
 
-        self.gesture_toggle_button = QPushButton("제스처 모드 활성화")
-        self.gesture_toggle_button.setCheckable(True)
-        self.gesture_toggle_button.clicked.connect(self.toggle_gesture_mode)
+        # 레이아웃을 위한 위젯 생성
+        layout_widget = QWidget()
+        layout = QHBoxLayout(layout_widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(5)
 
-        self.speech_toggle_button = QPushButton("음성 인식 활성화")
-        self.speech_toggle_button.setCheckable(True)
-        # self.speech_toggle_button.clicked.connect(self.toggle_speech_mode)
+        # 카메라, 마이크 인디케이터 설정
+        self.camera_indicator = IndicatorLabel('green')
+        self.camera_indicator.setToolTip('카메라로 제스처를 감지중입니다.')
+        self.mic_indicator = IndicatorLabel('orange')
+        self.mic_indicator.setToolTip('마이크로 음성을 감지중입니다.')
+
+        # 레이아웃에 인디케이터 추가
+        layout.addWidget(self.camera_indicator)
+        layout.addWidget(self.mic_indicator)
+
+        # 상태 표시줄에 레이아웃 위젯 추가
+        self.statusBar().addPermanentWidget(layout_widget)
+
+        # 기본적으로 인디케이터 숨김
+        self.camera_indicator.hide()
+        self.mic_indicator.hide()
+
+        # QLabel 스타일 설정
+        label_style = """
+        QLabel {
+            font-size: 18px;  /* 글씨 크기 설정 */
+            color: #333;      /* 글씨 색상 설정 */
+        }
+        """
+
+        # 제스처 모드 스위치와 라벨
+        self.toggle_layout = QGridLayout()
+        self.gesture_label = QLabel("     제스처 모드")
+        self.gesture_label.setStyleSheet(label_style)
+        self.gesture_toggle_switch = Switch()
+        self.gesture_toggle_switch.stateChanged.connect(self.toggle_gesture_mode)
+        self.toggle_layout.addWidget(self.gesture_label, 4, 1)
+        self.toggle_layout.addWidget(self.gesture_toggle_switch, 4, 2)
+
+        self.speech_label = QLabel("       음성 인식")
+        self.speech_label.setStyleSheet(label_style)
+        self.speech_toggle_switch = Switch()
+        self.speech_toggle_switch.setEnabled(False)
+        self.speech_toggle_switch.stateChanged.connect(self.toggle_speech_mode)
+        self.toggle_layout.addWidget(self.speech_label, 4, 4)
+        self.toggle_layout.addWidget(self.speech_toggle_switch, 4, 5)
 
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.video_widget)
-        self.layout.addWidget(self.gesture_toggle_button)
-        self.layout.addWidget(self.speech_toggle_button)
+        self.layout.addLayout(self.toggle_layout)
 
         self.container = QWidget()
         self.container.setLayout(self.layout)
         self.setCentralWidget(self.container)
 
-    def toggle_gesture_mode(self):
-        if self.gesture_toggle_button.isChecked():
+    def toggle_gesture_mode(self, state):
+        if self.gesture_toggle_switch.isChecked():
             self.video_widget.gesture_thread.start_gesture_recognition()
-            self.statusBar().showMessage('제스처 모드 ON', 3000)
+            self.speech_toggle_switch.setEnabled(True)
+            self.statusBar().showMessage('제스처 모드가 활성화되었습니다.', 3000)
+            self.camera_indicator.setVisible(True)
         else:
             self.video_widget.gesture_thread.stop_gesture_recognition()
-            self.statusBar().showMessage('제스처 모드 OFF', 3000)
+            self.speech_toggle_switch.setEnabled(False)
+            self.speech_toggle_switch.setChecked(False)
+            self.statusBar().showMessage('제스처 모드가 비활성화되었습니다.', 3000)
+            self.camera_indicator.setVisible(False)
+            self.mic_indicator.setVisible(False)
 
-    # def toggle_speech_mode(self):
-    #     if self.speech_toggle_button.isChecked():
-    #         self.video_widget.speech_recognition.start_recognition()
-    #     else:
-    #         self.video_widget.speech_recognition.stop_recognition()
+    def toggle_speech_mode(self, state):
+        if self.speech_toggle_switch.isChecked():
+            # self.speech_widget.speech_recognition.start_recognition()
+            self.mic_indicator.setVisible(True)
+            self.statusBar().showMessage('음성 인식이 활성화되었습니다.', 3000)
+        else:
+            # self.speech_widget.speech_recognition.stop_recognition()
+            self.mic_indicator.setVisible(False)
+            self.statusBar().showMessage('음성 인식이 비활성화되었습니다.', 3000)
 
     def closeEvent(self, event):
         self.statusBar().showMessage('프로그램 종료 중... 잠시만 기다려주세요.')
