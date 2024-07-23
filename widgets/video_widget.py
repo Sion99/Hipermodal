@@ -4,6 +4,7 @@ from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QScrollBar, QHBoxLay
 from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtCore import QTimer, Qt
 from modules.gesture_thread import GestureThread
+from modules.voice_recognition import VoiceRecognition
 
 
 class VideoWidget(QWidget):
@@ -13,6 +14,8 @@ class VideoWidget(QWidget):
         # GestureThread 초기화
         self.gesture_thread = GestureThread()
         self.gesture_thread.start()
+
+        self.voice_recognition = VoiceRecognition()
 
         self.init_ui()
 
@@ -200,5 +203,5 @@ class VideoWidget(QWidget):
     def closeEvent(self, event):
         self.gesture_thread.stop()
         self.gesture_thread.wait()
+        self.voice_recognition.stop()
         event.accept()
-

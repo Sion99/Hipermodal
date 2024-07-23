@@ -1,9 +1,8 @@
 import sys
-from PySide6.QtGui import QAction, QPainter, QColor, QCursor
+from PySide6.QtGui import QAction, QCursor, QPainter, QColor
 from PySide6.QtWidgets import QApplication, QMainWindow, QCheckBox, QVBoxLayout, QWidget, QLabel, QHBoxLayout, QGridLayout
 from PySide6.QtCore import Qt
 from widgets.video_widget import VideoWidget
-from widgets.speech_widget import SpeechWidget
 
 
 class IndicatorLabel(QLabel):
@@ -75,7 +74,6 @@ class MainWindow(QMainWindow):
         filemenu.addAction(exitAction)
 
         self.video_widget = VideoWidget()
-        self.speech_widget = SpeechWidget()
 
         # 레이아웃을 위한 위젯 생성
         layout_widget = QWidget()
@@ -155,6 +153,7 @@ class MainWindow(QMainWindow):
             self.camera_indicator.setVisible(True)
         else:
             self.video_widget.gesture_thread.stop_gesture_recognition()
+            self.video_widget.voice_recognition.stop()
             self.speech_toggle_switch.setEnabled(False)
             self.speech_toggle_switch.setChecked(False)
             self.statusBar().showMessage('제스처 모드가 비활성화되었습니다.', 3000)
@@ -163,9 +162,11 @@ class MainWindow(QMainWindow):
 
     def toggle_speech_mode(self, state):
         if self.speech_toggle_switch.isChecked():
+            self.video_widget.voice_recognition.start()
             self.mic_indicator.setVisible(True)
             self.statusBar().showMessage('음성 인식이 활성화되었습니다.', 3000)
         else:
+            self.video_widget.voice_recognition.stop()
             self.mic_indicator.setVisible(False)
             self.statusBar().showMessage('음성 인식이 비활성화되었습니다.', 3000)
 

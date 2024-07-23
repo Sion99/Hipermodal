@@ -19,5 +19,14 @@ class SpeechWidget(QWidget):
         self.control_panel = QWidget()
         self.control_layout = QGridLayout()
 
+        label_style = """
+        QLabel {
+            font-size: 14px;
+            color: #333;
+        }
+        """
+
+
+
 
 
