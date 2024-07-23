@@ -15,6 +15,7 @@ class VoiceCommandController:
         self.recognizer = sr.Recognizer()
         self.lock = threading.Lock()
         ssl._create_default_https_context = ssl._create_unverified_context
+        self.microphone = sr.Microphone()  # 마이크 객체를 초기화하여 재사용
 
     def start_voice_recognition(self):
         with self.lock:
@@ -30,7 +31,7 @@ class VoiceCommandController:
         self.listen_thread.start()
 
     def listen(self):
-        with sr.Microphone() as source:
+        with self.microphone as source:
             while self.running:
                 with self.lock:
                     if not self.recognition_active:
@@ -49,6 +50,7 @@ class VoiceCommandController:
                     print(f'Request Failed... {e}')
                 except Exception as e:
                     print(f'An error occurred: {e}')
+                    time.sleep(1)  # 예외가 발생하면 잠시 대기 후 재시도
 
     def stop(self):
         self.running = False
