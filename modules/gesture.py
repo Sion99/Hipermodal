@@ -35,6 +35,7 @@ class HandGestureController:
         self.scroll_sensitivity = scroll_sensitivity
         self.poll_rate = poll_rate
         self.thumb_index_distance = 1
+        self.last_scroll_value = 0
 
         pyautogui.FAILSAFE = False
         monitors = get_monitors()
@@ -67,7 +68,7 @@ class HandGestureController:
         thumb_tip = (hand_landmarks.landmark[4].x, hand_landmarks.landmark[4].y)
         index_tip = (hand_landmarks.landmark[8].x, hand_landmarks.landmark[8].y)
         self.thumb_index_distance = self.calculate_distance(thumb_tip, index_tip)
-        self.scroll_mode = self.thumb_index_distance < 0.045
+        self.scroll_mode = self.thumb_index_distance < 0.03
         return fingers
 
     def recognize_gesture(self, fingers_status):
@@ -108,7 +109,10 @@ class HandGestureController:
                     self.dragging = True
                 pyautogui.moveRel(dx, dy)
             elif gesture == 'scroll':
-                pyautogui.scroll(int(-dy * self.scroll_sensitivity))
+                dy = int(-dy * self.scroll_sensitivity)
+                smoothed_dy = (dy + self.last_scroll_value) / 2
+                pyautogui.scroll(smoothed_dy)
+                self.last_scroll_value = dy
             elif self.dragging:
                 pyautogui.mouseUp()
                 self.dragging = False
