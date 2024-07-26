@@ -1,42 +1,25 @@
-import subprocess
-from PySide6.QtCore import QThread, Signal
-import threading
+from PySide6.QtCore import QThread
+from modules.voice import VoiceCommandController
 
 
 class VoiceThread(QThread):
-    result_signal = Signal(str)
-
     def __init__(self):
         super(VoiceThread, self).__init__()
-        self.process = None
-        self.thread = None
-        self.running = False
+        self.voice_command_controller = VoiceCommandController()
+        self._running = False
 
     def run(self):
-        self.running = True
-        self.process = subprocess.Popen(['python', 'voice_recognition_script.py'], stdout=subprocess.PIPE, text=True)
-        self.thread = threading.Thread(target=self.read_output)
-        self.thread.start()
+        self._running = True
+        self.voice_command_controller.run()
 
-    def read_output(self):
-        while self.running:
-            output = self.process.stdout.readline()
-            if output:
-                self.handle_result(output.strip())
-            else:
-                break
+    def start_voice_recognition(self):
+        self.voice_command_controller.start_voice_recognition()
 
-    def handle_result(self, result):
-        # 음성 인식 결과를 처리하는 코드
-        self.result_signal.emit(result)  # 결과를 시그널로 전달
+    def stop_voice_recognition(self):
+        self.voice_command_controller.stop_voice_recognition()
 
     def stop(self):
-        self.running = False
-        if self.process is not None:
-            self.process.terminate()
-            self.process = None
-        if self.thread is not None:
-            self.thread.join()
-            self.thread = None
+        self._running = False
         self.quit()
-        self.wait(500)
+        self.voice_command_controller.stop()
+        self.wait()

@@ -10,7 +10,8 @@ from modules.webcam import Webcam
 
 
 class HandGestureController:
-    def __init__(self, buffer_size=10, click_interval=0.3, mouse_sensitivity=1.5, scroll_sensitivity=0.8, poll_rate=0.0055):
+    def __init__(self, buffer_size=10, click_interval=0.6, mouse_sensitivity=0.5, scroll_sensitivity=0.8,
+                 poll_rate=0.08):
         self.mp_hands = mp.solutions.hands
         self.hands = self.mp_hands.Hands(
             static_image_mode=False,
@@ -49,6 +50,7 @@ class HandGestureController:
         self.recognition_active = False
         self.running = False
         self.frame_lock = threading.Lock()  # Lock for frame synchronization
+        self.speech_recognition = False
 
     def calculate_distance(self, point1, point2):
         return np.linalg.norm(np.array(point1) - np.array(point2))
@@ -72,21 +74,30 @@ class HandGestureController:
         return fingers
 
     def recognize_gesture(self, fingers_status):
-        if fingers_status == [0, 1, 0, 0, 0]:
-            return 'move'
-        elif fingers_status == [1, 1, 0, 0, 0]:
-            return 'standby'
-        elif fingers_status == [1, 0, 0, 0, 0]:
-            return 'click'
-        elif fingers_status == [1, 1, 1, 0, 0]:
-            return 'drag'
-        elif fingers_status == [1, 1, 1, 1, 1]:
-            return 'move'
-        elif self.scroll_mode:
-            return 'scroll'
-        return 'unknown'
+        if not self.speech_recognition:
+            if fingers_status == [0, 1, 0, 0, 0]:
+                return 'move'
+            elif fingers_status == [1, 1, 0, 0, 0]:
+                return 'standby'
+            elif fingers_status == [1, 0, 0, 0, 0]:
+                return 'click'
+            elif fingers_status == [1, 1, 1, 0, 0]:
+                return 'drag'
+            elif fingers_status == [1, 1, 1, 1, 1]:
+                return 'move'
+            elif self.scroll_mode:
+                return 'scroll'
+            return 'unknown'
+        else:
+            if fingers_status == [0, 1, 0, 0, 0]:
+                return 'move'
+            elif fingers_status == [1, 1, 0, 0, 0]:
+                return 'standby'
+            elif fingers_status == [1, 1, 1, 1, 1]:
+                return 'move'
+            return 'unknown'
 
-    def perform_mouse_action(self, gesture, lmList, handedness):
+    def perform_mouse_action(self, gesture, lmList):
         x, y = lmList[8].x, lmList[8].y
         mouse_x, mouse_y = pyautogui.position()
 
@@ -101,7 +112,7 @@ class HandGestureController:
             dx = max(min(dx, self.total_screen_width - mouse_x), -mouse_x)
             dy = max(min(dy, self.total_screen_height - mouse_y), -mouse_y)
 
-            if gesture == 'move':
+            if gesture == 'move' or self.dragging:
                 pyautogui.moveRel(dx, dy)
             elif gesture == 'drag':
                 if not self.dragging:
@@ -120,12 +131,88 @@ class HandGestureController:
         self.prev_finger_pos = (x, y)
         self.last_gesture = gesture
 
-    def perform_click_action(self, gesture):
-        current_time = time.time()
-        if gesture == 'click' and gesture != self.last_gesture and current_time - self.last_click_time > self.click_interval:
-            pyautogui.click()
-            self.last_click_time = current_time
-        self.last_gesture = gesture
+    def perform_click_action(self):
+        with self.frame_lock:
+            current_time = time.time()
+            if not self.speech_recognition:  # 제스처 모드일 때
+                if current_time - self.last_click_time > self.click_interval:
+                    print(f"Performing click: {current_time - self.last_click_time} > {self.click_interval}")
+                    pyautogui.click()
+                    self.last_click_time = current_time
+                    self.last_gesture = 'click'
+            else:  # 음성 인식 모드일 때
+                if current_time - self.last_click_time > self.click_interval:
+                    print(f"Performing click: {current_time - self.last_click_time} > {self.click_interval}")
+                    pyautogui.click()
+                    self.last_click_time = current_time
+                    self.last_gesture = 'click'
+                else:
+                    print(f"Click not performed: {current_time - self.last_click_time} > {self.click_interval}")
+
+    def perform_double_click_action(self):
+        with self.frame_lock:
+            current_time = time.time()
+            if not self.speech_recognition:  # 제스처 모드일 때
+                if current_time - self.last_click_time > self.click_interval:
+                    print(f"Performing double click: {current_time - self.last_click_time} > {self.click_interval}")
+                    pyautogui.doubleClick()
+                    self.last_click_time = current_time
+                    self.last_gesture = 'double click'
+            else:  # 음성 인식 모드일 때
+                if current_time - self.last_click_time > self.click_interval:
+                    print(f"Performing double click: {current_time - self.last_click_time} > {self.click_interval}")
+                    pyautogui.doubleClick()
+                    self.last_click_time = current_time
+                    self.last_gesture = 'double click'
+                else:
+                    print(f"Double click not performed: {current_time - self.last_click_time} > {self.click_interval}")
+
+    # def perform_click_action(self):
+    #     current_time = time.time()
+    #     if not self.speech_recognition:  # 제스처 only 일 때
+    #         if 'click' != self.last_gesture and current_time - self.last_click_time > self.click_interval:
+    #             pyautogui.click()
+    #     else:  # 음성 인식 모드일때
+    #         if current_time - self.last_click_time > self.click_interval:
+    #             pyautogui.click()
+    #         else:
+    #             print(f'클릭이 되지 않았음: {current_time - self.last_click_time} > {self.click_interval}')
+    #     self.last_click_time = current_time
+    #     self.last_gesture = 'click'
+    #
+    # def perform_double_click_action(self):
+    #     current_time = time.time()
+    #     if not self.speech_recognition:  # 제스처 only 일 때
+    #         if 'double click' != self.last_gesture and current_time - self.last_click_time > self.click_interval:
+    #             pyautogui.doubleClick()
+    #     else:  # 음성 인식 모드일때
+    #         if current_time - self.last_click_time > self.click_interval:
+    #             pyautogui.doubleClick()
+    #     self.last_click_time = current_time
+    #     self.last_gesture = 'double click'
+
+    def perform_scroll_action(self, gesture):
+        with self.frame_lock:
+            scroll_amount = self.total_screen_height // 15
+            if gesture == 'up':
+                print(f"Scrolling up by {scroll_amount}")
+                pyautogui.scroll(scroll_amount)
+                self.last_gesture = 'scroll up'
+            elif gesture == 'down':
+                print(f"Scrolling down by {scroll_amount}")
+                pyautogui.scroll(-scroll_amount)
+                self.last_gesture = 'scroll down'
+
+    def perform_drag_action(self, gesture):
+        with self.frame_lock:
+            if gesture == 'drag' and not self.dragging:
+                print("Starting drag...")
+                pyautogui.mouseDown()
+                self.dragging = True
+            elif gesture == 'drop' and self.dragging:
+                print("Ending drag...")
+                pyautogui.mouseUp()
+                self.dragging = False
 
     def start_gesture_recognition(self):
         self.recognition_active = True
@@ -181,17 +268,21 @@ class HandGestureController:
                         self.gesture_buffer.append(gesture)
 
                         most_common_gesture = Counter(self.gesture_buffer).most_common(1)[0][0]
-                        handedness = result.multi_handedness[i].classification[0].label
-
                         if most_common_gesture == 'standby':
                             self.standby_finger_pos = (hand_landmarks.landmark[8].x, hand_landmarks.landmark[8].y)
+                            self.last_gesture = 'standby'
 
                         if most_common_gesture in ['move', 'drag', 'scroll']:
                             io_thread = threading.Thread(target=self.perform_mouse_action,
-                                                         args=(most_common_gesture, hand_landmarks.landmark, handedness))
+                                                         args=(
+                                                             most_common_gesture, hand_landmarks.landmark))
                             io_thread.start()
-                        else:
-                            self.perform_click_action(most_common_gesture)
+                        if most_common_gesture == 'click':
+                            self.perform_click_action()
+                        if most_common_gesture == 'double click':
+                            self.perform_double_click_action()
+                        # else:
+                        #     self.perform_click_action(most_common_gesture)
             time.sleep(self.poll_rate)  # Use the poll rate for sleep time
 
     def get_frame(self):

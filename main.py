@@ -1,7 +1,8 @@
 import sys
 from PySide6.QtGui import QAction, QCursor, QPainter, QColor
-from PySide6.QtWidgets import QApplication, QMainWindow, QCheckBox, QVBoxLayout, QWidget, QLabel, QHBoxLayout, QGridLayout
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication, QMainWindow, QCheckBox, QVBoxLayout, QWidget, QLabel, QHBoxLayout, \
+    QGridLayout
+from PySide6.QtCore import Qt, QPropertyAnimation, QPoint
 from widgets.video_widget import VideoWidget
 
 
@@ -42,7 +43,6 @@ class Switch(QCheckBox):
                 position: absolute;
                 left: 1px;
                 top: 1px;
-                transition: all .3s;
             }
             QCheckBox::indicator:checked {
                 left: 32px;
@@ -52,6 +52,17 @@ class Switch(QCheckBox):
                 border: 2px solid #66bb6a;
             }
         ''')
+
+        self.animation = QPropertyAnimation(self, b"pos")
+        self.animation.setDuration(300)
+        self.stateChanged.connect(self.start_animation)
+
+    def start_animation(self, state):
+        if state == Qt.Checked:
+            self.animation.setEndValue(self.mapToParent(self.rect().topLeft() + QPoint(32, 0)))
+        else:
+            self.animation.setEndValue(self.mapToParent(self.rect().topLeft() + QPoint(1, 0)))
+        self.animation.start()
 
 
 class MainWindow(QMainWindow):
@@ -153,7 +164,7 @@ class MainWindow(QMainWindow):
             self.camera_indicator.setVisible(True)
         else:
             self.video_widget.gesture_thread.stop_gesture_recognition()
-            self.video_widget.voice_recognition.stop()
+            self.video_widget.voice_recognition_stop()
             self.speech_toggle_switch.setEnabled(False)
             self.speech_toggle_switch.setChecked(False)
             self.statusBar().showMessage('제스처 모드가 비활성화되었습니다.', 3000)
@@ -162,11 +173,11 @@ class MainWindow(QMainWindow):
 
     def toggle_speech_mode(self, state):
         if self.speech_toggle_switch.isChecked():
-            self.video_widget.voice_recognition.start()
+            self.video_widget.voice_recognition_start()
             self.mic_indicator.setVisible(True)
             self.statusBar().showMessage('음성 인식이 활성화되었습니다.', 3000)
         else:
-            self.video_widget.voice_recognition.stop()
+            self.video_widget.voice_recognition_stop()
             self.mic_indicator.setVisible(False)
             self.statusBar().showMessage('음성 인식이 비활성화되었습니다.', 3000)
 

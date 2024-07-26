@@ -11,7 +11,7 @@ class VoiceRecognition:
     def start(self):
         if self.process is None:
             self.running = True
-            self.process = subprocess.Popen(['python', 'modules/voice.py'], stdout=subprocess.PIPE,
+            self.process = subprocess.Popen(['python', 'modules/transformer.py'], stdout=subprocess.PIPE,
                                             text=True)
             self.thread = threading.Thread(target=self.read_output)
             self.thread.start()
@@ -26,7 +26,7 @@ class VoiceRecognition:
 
     def handle_result(self, result):
         # 음성 인식 결과를 처리하는 코드
-        print(f"Voice Recognition Result: {result}")
+        print(f"음성 인식 모듈: {result}")
 
     def stop(self):
         self.running = False

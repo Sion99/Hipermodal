@@ -200,6 +200,14 @@ class VideoWidget(QWidget):
         except Exception as e:
             print(f"Error in update_frame: {e}")
 
+    def voice_recognition_start(self):
+        self.voice_recognition.start()
+        self.gesture_thread.hand_gesture_controller.speech_recognition = True
+
+    def voice_recognition_stop(self):
+        self.voice_recognition.stop()
+        self.gesture_thread.hand_gesture_controller.speech_recognition = False
+
     def closeEvent(self, event):
         self.gesture_thread.stop()
         self.gesture_thread.wait()
