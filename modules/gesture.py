@@ -10,7 +10,7 @@ from modules.webcam import Webcam
 
 
 class HandGestureController:
-    def __init__(self, buffer_size=10, click_interval=1, mouse_sensitivity=0.5, scroll_sensitivity=0.8,
+    def __init__(self, buffer_size=10, click_interval=1, mouse_sensitivity=0.5, scroll_sensitivity=0.5,
                  poll_rate=0.007):
         self.mp_hands = mp.solutions.hands
         self.hands = self.mp_hands.Hands(
@@ -202,6 +202,17 @@ class HandGestureController:
                 print(f"Scrolling down by {scroll_amount}")
                 pyautogui.scroll(-scroll_amount)
                 self.last_gesture = 'scroll down'
+
+    def perform_zoom_action(self, gesture):
+        with self.frame_lock:
+            if gesture == 'in':
+                print("zoom in")
+                pyautogui.hotkey('command', '+')
+                self.last_gesture = 'zoom in'
+            elif gesture == 'out':
+                print("zoom out")
+                pyautogui.hotkey('command', '-')
+                self.last_gesture = 'zoom out'
 
     def perform_drag_action(self, gesture):
         with self.frame_lock:

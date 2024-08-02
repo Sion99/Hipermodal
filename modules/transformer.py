@@ -17,12 +17,14 @@ class VoiceCommandController:
         self.CHANNELS = 1
         self.RATE = 16000
         self.wake_word = ["click", "double click", "up", "down"]
-        self.CLICK = ['click', 'click.', 'Click', 'Click.', 'Click!', '클릭', 'Клик.', 'Клик', 'kлик', 'kлик.']
+        self.CLICK = ['click', 'click.', 'Click', 'Click.', 'Click!', '클릭', '클리', 'Клик.', 'Клик', 'kлик', 'kлик.', 'Cleak.', 'Kli', 'Clique.']
         self.DOUBLE_CLICK = ['더블클릭', '더블 클릭', 'Double click.', 'Double click', 'double click', 'Double-click', 'double-click']
-        self.UP = ['Up', 'Up.', 'up', 'up.', '업', '업.', 'Tom.', 'Oop', 'Oop!', 'Oop.', 'Op!', 'Hopp!', 'Op.']
-        self.DOWN = ['Down', 'Down.', 'down', 'down.', '다운', '다운.', "Don't.", "Don't", 'Town.', 'Ton.', 'Tom', 'Town', 'town', 'town.', 'Thone.']
+        self.UP = ['Up', 'Up.', 'up', 'up.', '업', '업.', 'Tom.', 'Oop', 'Oop!', 'Oop.', 'Op!', 'Hopp!', 'Op.', 'Opp.', 'Opp', 'Oh', 'Oh.', 'Hope.']
+        self.DOWN = ['Down', 'Down.', 'down', 'down.', '다운', '다운.', "Don't.", "Don't", 'Town.', 'Ton.', 'Tom', 'Town', 'town', 'town.', 'Thone.', "Don't...", '다음', '다은']
+        self.IN = ['in', 'in.']
+        self.OUT = ['out', 'out.', 'Out', 'Out.']
         self.DRAG = ['Drag.', 'Drag', 'drag.', 'drag', '드래그', '드레그', 'Дройки.', 'Трек.', 'Дрек', '드레', '드래', 'track', 'Trek.', 'Hold.', 'Hold', 'hold.', 'hold', 'Holt.', 'old.', 'old', 'holt']
-        self.DROP = ['드럽고', '드럽', 'Drop.', 'Drop', 'drop.', 'drop', 'truck.', 'truck', '드라', '드랍', 'Trump', 'trump']
+        self.DROP = ['드럽고', '드럽', 'Drop.', 'Drop', 'drop.', 'drop', 'truck.', 'truck', '드라', '드랍', 'Trump', 'trump', '드럼', ]
 
     def run(self):
         self.running = True
@@ -66,6 +68,10 @@ class VoiceCommandController:
                         gesture_controller.perform_scroll_action('up')
                     elif text in self.DOWN:
                         gesture_controller.perform_scroll_action('down')
+                    elif text in self.IN:
+                        gesture_controller.perform_zoom_action('in')
+                    elif text in self.OUT:
+                        gesture_controller.perform_zoom_action('out')
                     elif text in self.DRAG:
                         gesture_controller.perform_drag_action('drag')
                     elif text in self.DROP:
