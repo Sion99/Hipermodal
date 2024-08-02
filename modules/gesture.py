@@ -121,7 +121,7 @@ class HandGestureController:
                 pyautogui.moveRel(dx, dy)
             if gesture == 'scroll':
                 dy = int(-dy * self.scroll_sensitivity)
-                smoothed_dy = (dy + self.last_scroll_value) / 2
+                smoothed_dy = (dy + self.last_scroll_value) // 2
                 pyautogui.scroll(smoothed_dy)
                 self.last_scroll_value = dy
             if gesture != 'drag' and self.drag_mode:
