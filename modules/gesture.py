@@ -10,8 +10,8 @@ from modules.webcam import Webcam
 
 
 class HandGestureController:
-    def __init__(self, buffer_size=10, click_interval=0.6, mouse_sensitivity=0.5, scroll_sensitivity=0.8,
-                 poll_rate=0.08):
+    def __init__(self, buffer_size=10, click_interval=1, mouse_sensitivity=0.5, scroll_sensitivity=0.8,
+                 poll_rate=0.007):
         self.mp_hands = mp.solutions.hands
         self.hands = self.mp_hands.Hands(
             static_image_mode=False,
@@ -26,7 +26,7 @@ class HandGestureController:
         self.initial_distance = None
         self.last_click_time = time.time()
         self.last_gesture = None
-        self.dragging = False
+        self.drag_mode = False
         self.click_interval = click_interval
         self.prev_finger_pos = None
         self.standby_finger_pos = None
@@ -112,21 +112,21 @@ class HandGestureController:
             dx = max(min(dx, self.total_screen_width - mouse_x), -mouse_x)
             dy = max(min(dy, self.total_screen_height - mouse_y), -mouse_y)
 
-            if gesture == 'move' or self.dragging:
+            if gesture == 'move':
                 pyautogui.moveRel(dx, dy)
-            elif gesture == 'drag':
-                if not self.dragging:
+            if gesture == 'drag':
+                if not self.drag_mode:
                     pyautogui.mouseDown()
-                    self.dragging = True
+                    self.drag_mode = True
                 pyautogui.moveRel(dx, dy)
-            elif gesture == 'scroll':
+            if gesture == 'scroll':
                 dy = int(-dy * self.scroll_sensitivity)
                 smoothed_dy = (dy + self.last_scroll_value) / 2
                 pyautogui.scroll(smoothed_dy)
                 self.last_scroll_value = dy
-            elif self.dragging:
+            if gesture != 'drag' and self.drag_mode:
                 pyautogui.mouseUp()
-                self.dragging = False
+                self.drag_mode = False
 
         self.prev_finger_pos = (x, y)
         self.last_gesture = gesture
@@ -136,13 +136,13 @@ class HandGestureController:
             current_time = time.time()
             if not self.speech_recognition:  # 제스처 모드일 때
                 if current_time - self.last_click_time > self.click_interval:
-                    print(f"Performing click: {current_time - self.last_click_time} > {self.click_interval}")
+                    # print(f"Performing click: {current_time - self.last_click_time} > {self.click_interval}")
                     pyautogui.click()
                     self.last_click_time = current_time
                     self.last_gesture = 'click'
             else:  # 음성 인식 모드일 때
                 if current_time - self.last_click_time > self.click_interval:
-                    print(f"Performing click: {current_time - self.last_click_time} > {self.click_interval}")
+                    # print(f"Performing click: {current_time - self.last_click_time} > {self.click_interval}")
                     pyautogui.click()
                     self.last_click_time = current_time
                     self.last_gesture = 'click'
@@ -154,13 +154,13 @@ class HandGestureController:
             current_time = time.time()
             if not self.speech_recognition:  # 제스처 모드일 때
                 if current_time - self.last_click_time > self.click_interval:
-                    print(f"Performing double click: {current_time - self.last_click_time} > {self.click_interval}")
+                    # print(f"Performing double click: {current_time - self.last_click_time} > {self.click_interval}")
                     pyautogui.doubleClick()
                     self.last_click_time = current_time
                     self.last_gesture = 'double click'
             else:  # 음성 인식 모드일 때
                 if current_time - self.last_click_time > self.click_interval:
-                    print(f"Performing double click: {current_time - self.last_click_time} > {self.click_interval}")
+                    # print(f"Performing double click: {current_time - self.last_click_time} > {self.click_interval}")
                     pyautogui.doubleClick()
                     self.last_click_time = current_time
                     self.last_gesture = 'double click'
@@ -193,7 +193,7 @@ class HandGestureController:
 
     def perform_scroll_action(self, gesture):
         with self.frame_lock:
-            scroll_amount = self.total_screen_height // 15
+            scroll_amount = self.total_screen_height // 10
             if gesture == 'up':
                 print(f"Scrolling up by {scroll_amount}")
                 pyautogui.scroll(scroll_amount)
@@ -205,14 +205,14 @@ class HandGestureController:
 
     def perform_drag_action(self, gesture):
         with self.frame_lock:
-            if gesture == 'drag' and not self.dragging:
+            if gesture == 'drag' and not self.drag_mode:
                 print("Starting drag...")
                 pyautogui.mouseDown()
-                self.dragging = True
-            elif gesture == 'drop' and self.dragging:
+                self.drag_mode = True
+            elif gesture == 'drop' and self.drag_mode:
                 print("Ending drag...")
                 pyautogui.mouseUp()
-                self.dragging = False
+                self.drag_mode = False
 
     def start_gesture_recognition(self):
         self.recognition_active = True

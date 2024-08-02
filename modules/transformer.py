@@ -19,10 +19,10 @@ class VoiceCommandController:
         self.wake_word = ["click", "double click", "up", "down"]
         self.CLICK = ['click', 'click.', 'Click', 'Click.', 'Click!', '클릭', 'Клик.', 'Клик', 'kлик', 'kлик.']
         self.DOUBLE_CLICK = ['더블클릭', '더블 클릭', 'Double click.', 'Double click', 'double click', 'Double-click', 'double-click']
-        self.UP = ['Up', 'Up.', 'up', 'up.', '업', '업.', 'Tom.', 'Oop']
-        self.DOWN = ['Down', 'Down.', 'down', 'down.', '다운', '다운.', "Don't.", 'Town.', 'Ton.', 'Tom', 'Town', 'town', 'town.', 'Thone.']
+        self.UP = ['Up', 'Up.', 'up', 'up.', '업', '업.', 'Tom.', 'Oop', 'Oop!', 'Oop.', 'Op!', 'Hopp!', 'Op.']
+        self.DOWN = ['Down', 'Down.', 'down', 'down.', '다운', '다운.', "Don't.", "Don't", 'Town.', 'Ton.', 'Tom', 'Town', 'town', 'town.', 'Thone.']
         self.DRAG = ['Drag.', 'Drag', 'drag.', 'drag', '드래그', '드레그', 'Дройки.', 'Трек.', 'Дрек', '드레', '드래', 'track', 'Trek.', 'Hold.', 'Hold', 'hold.', 'hold', 'Holt.', 'old.', 'old', 'holt']
-        self.DROP = ['드럽고', '드럽', 'Drop.', 'Drop', 'drop.', 'drop', 'truck.', 'truck', '드라', '드랍']
+        self.DROP = ['드럽고', '드럽', 'Drop.', 'Drop', 'drop.', 'drop', 'truck.', 'truck', '드라', '드랍', 'Trump', 'trump']
 
     def run(self):
         self.running = True

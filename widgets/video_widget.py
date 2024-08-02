@@ -159,7 +159,7 @@ class VideoWidget(QWidget):
         return 0.1 + value * 1.4 / 100
 
     def inverse_scale_poll_rate(self, value):
-        return 0.001 + value * 0.009 / 100
+        return 0.003 + value * 0.009 / 100
 
     def update_mouse_sensitivity(self, value):
         sensitivity = self.inverse_scale_mouse_sensitivity(value)

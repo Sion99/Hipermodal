@@ -74,6 +74,7 @@ class MainWindow(QMainWindow):
 
         # Status Bar
         self.statusBar().showMessage('프로그램 실행 완료', 3000)
+        self.video_widget = VideoWidget()
 
         self.menuBar().setNativeMenuBar(False)  # macOS 에서만
         filemenu = self.menuBar().addMenu("&File")
@@ -83,8 +84,6 @@ class MainWindow(QMainWindow):
         exitAction.setStatusTip('프로그램 종료')
         exitAction.triggered.connect(QApplication.quit)
         filemenu.addAction(exitAction)
-
-        self.video_widget = VideoWidget()
 
         # 레이아웃을 위한 위젯 생성
         layout_widget = QWidget()
@@ -142,9 +141,13 @@ class MainWindow(QMainWindow):
         self.container.setLayout(self.layout)
         self.setCentralWidget(self.container)
 
+        # 배경 색상 설정
+        self.setStyleSheet("background-color: #ffffff;")  # 여기에 원하는 색상을 입력하세요.
+
         # 제스처 모드 단축키
         self.gesture_shortcut = QAction('Toggle Gesture Mode', self)
         self.gesture_shortcut.setShortcut('Ctrl+C')
+        self.gesture_shortcut.setStatusTip('Toggle Gesture Mode')
         self.gesture_shortcut.triggered.connect(self.toggle_gesture_mode_shortcut)
         self.addAction(self.gesture_shortcut)
         filemenu.addAction(self.gesture_shortcut)
@@ -152,6 +155,7 @@ class MainWindow(QMainWindow):
         # 음성 인식 단축키
         self.speech_shortcut = QAction('Toggle Speech Mode', self)
         self.speech_shortcut.setShortcut('Ctrl+V')
+        self.speech_shortcut.setStatusTip('Toggle Speech Mode')
         self.speech_shortcut.triggered.connect(self.toggle_speech_mode_shortcut)
         self.addAction(self.speech_shortcut)
         filemenu.addAction(self.speech_shortcut)
