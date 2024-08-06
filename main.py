@@ -70,7 +70,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
 
         self.setFixedSize(690, 800)
-        self.setWindowTitle("Hiperwall Multimodal")
+        self.setWindowTitle("Hipermodal")
 
         # Status Bar
         self.statusBar().showMessage('프로그램 실행 완료', 3000)
@@ -118,14 +118,14 @@ class MainWindow(QMainWindow):
 
         # 제스처 모드 스위치와 라벨
         self.toggle_layout = QGridLayout()
-        self.gesture_label = QLabel("     제스처 모드")
+        self.gesture_label = QLabel("   제스처 모드")
         self.gesture_label.setStyleSheet(label_style)
         self.gesture_toggle_switch = Switch()
         self.gesture_toggle_switch.stateChanged.connect(self.toggle_gesture_mode)
         self.toggle_layout.addWidget(self.gesture_label, 4, 1)
         self.toggle_layout.addWidget(self.gesture_toggle_switch, 4, 2)
 
-        self.speech_label = QLabel("       음성 인식")
+        self.speech_label = QLabel("   음성 인식")
         self.speech_label.setStyleSheet(label_style)
         self.speech_toggle_switch = Switch()
         self.speech_toggle_switch.setEnabled(False)

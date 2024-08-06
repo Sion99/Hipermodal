@@ -84,7 +84,7 @@ class HandGestureController:
             elif fingers_status == [1, 1, 1, 0, 0]:
                 return 'drag'
             elif fingers_status == [1, 1, 1, 1, 1]:
-                return 'move'
+                return 'standby'
             elif self.scroll_mode:
                 return 'scroll'
             return 'unknown'

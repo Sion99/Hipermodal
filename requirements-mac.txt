@@ -4,3 +4,5 @@ mediapipe
 pyautogui
 screeninfo
 pyinstaller
+transformers
+pyaudio
