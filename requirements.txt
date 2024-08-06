@@ -6,3 +6,4 @@ screeninfo
 pyinstaller
 transformers
 pyaudio
+torch==2.3.1
