@@ -1,5 +1,6 @@
 import subprocess
 import threading
+import sys
 
 
 class VoiceRecognition:
@@ -11,7 +12,7 @@ class VoiceRecognition:
     def start(self):
         if self.process is None:
             self.running = True
-            self.process = subprocess.Popen(['python', 'modules/transformer.py'], stdout=subprocess.PIPE,
+            self.process = subprocess.Popen([sys.executable, 'modules/transformer.py'], stdout=subprocess.PIPE,
                                             text=True)
             self.thread = threading.Thread(target=self.read_output)
             self.thread.start()
