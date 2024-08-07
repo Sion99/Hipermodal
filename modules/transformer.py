@@ -1,6 +1,7 @@
 import pyaudio
 import torch
 import numpy as np
+import ssl
 from transformers import pipeline
 
 
@@ -8,6 +9,7 @@ class VoiceCommandController:
     def __init__(self, gesture_controller):
         self.gesture_controller = gesture_controller
         self.running = False
+        ssl._create_default_https_context = ssl._create_unverified_context
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
         self.transcriber = pipeline(
             "automatic-speech-recognition", model="openai/whisper-base", device=self.device

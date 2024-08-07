@@ -38,7 +38,7 @@ class VoiceCommandController:
 
 # 사용 예시
 if __name__ == "__main__":
-    from gesture import HandGestureController
+    from modules.gesture import HandGestureController
 
     gesture_controller = HandGestureController()
     voice_controller = VoiceCommandController(gesture_controller)

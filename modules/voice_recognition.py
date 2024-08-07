@@ -1,3 +1,4 @@
+import os
 import subprocess
 import threading
 import sys
@@ -12,8 +13,10 @@ class VoiceRecognition:
     def start(self):
         if self.process is None:
             self.running = True
+            env = os.environ.copy()
+            env["PYTHONPATH"] = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
             self.process = subprocess.Popen([sys.executable, 'modules/transformer.py'], stdout=subprocess.PIPE,
-                                            text=True)
+                                            env=env, text=True)
             self.thread = threading.Thread(target=self.read_output)
             self.thread.start()
 
