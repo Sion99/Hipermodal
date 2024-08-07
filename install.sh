@@ -5,11 +5,11 @@ cd "$SCRIPT_DIR"
 
 # Check if project exists
 if [ -d "hipermodal" ]; then
-    echo "\nHipermodal already exists. Delete it or install in diffrent directory.\n"
+    echo "Hipermodal already exists. Delete it or install in diffrent directory."
     exit 1
 fi
 
-echo "\nCloning git repository...\n"
+echo "Cloning git repository..."
 
 # Clone git repository
 git clone https://github.com/Sion99/Hipermodal.git hipermodal
@@ -17,7 +17,7 @@ cd hipermodal
 
 # Create virtual environment
 if [ ! -d ".venv" ]; then
-    echo "\nCreating virtual environment...\n"
+    echo "Creating virtual environment..."
     python3 -m venv .venv
 fi
 
@@ -25,11 +25,11 @@ fi
 source .venv/bin/activate
 
 # Install required libraries
-echo "\nInstalling required dependencies...\n"
+echo "Installing required dependencies..."
 pip install --upgrade pip
 pip install -r requirements.txt
 
 # Deactivate
 deactivate
 
-echo "\nInstallation complete. To run this program, excute run.sh\n"
+echo "Installation complete. To run this program, excute run.sh"
