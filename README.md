@@ -45,3 +45,9 @@ After the installation, execute run.sh to start the program.
 ```bash
 ./run.sh
 ```
+## 📄 User Guide
+Read Korean user documentation to learn operations and gestures.
+
+[<img src="https://img.shields.io/badge/Korean User Guide-000000?style=for-the-badge&logo=Notion&logoColor=white">](https://hypnotic-lemming-e32.notion.site/Hipermodal-2cfd3f2c3dc3475b8213a46b52586ba8?pvs=74)
+
+## Developer Documentation
