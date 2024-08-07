@@ -58,9 +58,13 @@ class VoiceCommandController:
                     audio_input = audio_input.astype(np.float32) / np.max(np.abs(audio_input))  # 정규화
                     frames = []
 
-                    # 모델로 텍스트 변환
-                    text = self.transcriber({"sampling_rate": self.RATE, "raw": audio_input})["text"].strip()
-                    print(text)
+                    # 모델로 텍스트 변환 및 유니코드 에러 처리 (Windows 에러)
+                    try:
+                        text = self.transcriber({"sampling_rate": self.RATE, "raw": audio_input})["text"].strip()
+                        print(text)
+                    except UnicodeEncodeError as e:
+                        print("유니코드 깨짐")
+                        continue
 
                     if text in self.CLICK:
                         gesture_controller.perform_click_action()
