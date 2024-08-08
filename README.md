@@ -10,7 +10,7 @@ Hipermodal was developed to control the Hiperwall video wall controller.
 - **Fast Response Time**: Ensures fast response times using multi-threading.
 
 ## 🚀 Installation and Execution
-### Windows
+### 💻 Windows
 - **Recommended**: Windows 10 or higher
 
 **1. Clone the repository**:
@@ -34,7 +34,7 @@ If your dependecies have conflict problems, use requirements-win.txt instead.
 python main.py
 ```
 
-### macOS
+### 🖥️ macOS
 - **Recommended**: macOS 10.15 or higher
 
 For macOS, you can easily install it by copy and paste the following command in the terminal:
