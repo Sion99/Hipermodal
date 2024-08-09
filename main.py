@@ -1,5 +1,5 @@
 import sys
-from PySide6.QtGui import QAction, QCursor, QPainter, QColor
+from PySide6.QtGui import QAction, QCursor, QPainter, QColor, QMovie, QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow, QCheckBox, QVBoxLayout, QWidget, QLabel, QHBoxLayout, \
     QGridLayout
 from PySide6.QtCore import Qt, QPropertyAnimation, QPoint
@@ -10,7 +10,7 @@ class IndicatorLabel(QLabel):
     def __init__(self, color, parent=None):
         super().__init__(parent)
         self.color = color
-        self.setFixedSize(15, 15)  # 원의 크기 조절
+        self.setFixedSize(18, 18)  # 원의 크기 조절
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -71,6 +71,7 @@ class MainWindow(QMainWindow):
 
         self.setFixedSize(690, 800)
         self.setWindowTitle("Hipermodal")
+        self.setWindowIcon(QIcon('resources/icon.ico'))
 
         # Status Bar
         self.statusBar().showMessage('프로그램 실행 완료', 3000)
@@ -100,9 +101,16 @@ class MainWindow(QMainWindow):
         self.mic_indicator = IndicatorLabel('orange')
         self.mic_indicator.setToolTip('마이크로 음성을 감지중입니다.')
 
+        # 로딩 애니메이션 설정
+        self.loading_label = QLabel(self)
+        self.loading_movie = QMovie('resources/loading.gif')
+        self.loading_label.setMovie(self.loading_movie)
+        self.loading_label.setFixedSize(22, 22)
+
         # 레이아웃에 인디케이터 추가
         layout.addWidget(self.camera_indicator)
         layout.addWidget(self.mic_indicator)
+        layout.addWidget(self.loading_label)
 
         # 상태 표시줄에 레이아웃 위젯 추가
         self.statusBar().addPermanentWidget(layout_widget)
@@ -110,6 +118,7 @@ class MainWindow(QMainWindow):
         # 기본적으로 인디케이터 숨김
         self.camera_indicator.hide()
         self.mic_indicator.hide()
+        self.loading_label.hide()
 
         # QLabel 스타일 설정
         label_style = """
@@ -181,10 +190,13 @@ class MainWindow(QMainWindow):
     def toggle_speech_mode(self, state):
         if self.speech_toggle_switch.isChecked():
             self.video_widget.voice_recognition_start()
-            # self.mic_indicator.setVisible(True)
+            self.loading_label.show()
+            self.loading_movie.start()
             self.statusBar().showMessage('음성 인식이 완전히 활성화될 때까지 잠시만 기다려주세요.', 3000)
         else:
             self.video_widget.voice_recognition_stop()
+            self.loading_movie.stop()
+            self.loading_label.hide()
             self.mic_indicator.setVisible(False)
             self.statusBar().showMessage('음성 인식이 비활성화되었습니다.', 3000)
 
@@ -198,6 +210,8 @@ class MainWindow(QMainWindow):
     def on_listening(self):
         # Listening 신호를 수신했을 때 수행할 작업
         self.statusBar().showMessage('음성 인식이 활성화되었습니다.', 3000)
+        self.loading_movie.stop()
+        self.loading_label.hide()
         self.mic_indicator.setVisible(True)
 
     def closeEvent(self, event):
