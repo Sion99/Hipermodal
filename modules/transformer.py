@@ -6,19 +6,17 @@ from transformers import pipeline
 
 
 class VoiceCommandController:
-    def __init__(self, gesture_controller):
-        self.gesture_controller = gesture_controller
+    def __init__(self):
+        # self.gesture_controller = gesture_controller
         self.running = False
-        ssl._create_default_https_context = ssl._create_unverified_context
-        self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        # ssl._create_default_https_context = ssl._create_unverified_context
         self.transcriber = pipeline(
-            "automatic-speech-recognition", model="openai/whisper-base", device=self.device
+            "automatic-speech-recognition", model="openai/whisper-base"
         )
         self.CHUNK = 4096
         self.FORMAT = pyaudio.paInt16
         self.CHANNELS = 1
         self.RATE = 16000
-        self.wake_word = ["click", "double click", "up", "down"]
         self.CLICK = ['click', 'click.', 'Click', 'Click.', 'Click!', '클릭', '클리', 'Клик.', 'Клик', 'kлик', 'kлик.', 'Cleak.', 'Kli', 'Clique.']
         self.DOUBLE_CLICK = ['더블클릭', '더블 클릭', 'Double click.', 'Double click', 'double click', 'Double-click', 'double-click']
         self.UP = ['Up', 'Up.', 'up', 'up.', '업', '업.', 'Tom.', 'Oop', 'Oop!', 'Oop.', 'Op!', 'Hopp!', 'Op.', 'Opp.', 'Opp', 'Oh', 'Oh.', 'Hope.']
@@ -66,22 +64,22 @@ class VoiceCommandController:
                         print("유니코드 깨짐")
                         continue
 
-                    if text in self.CLICK:
-                        gesture_controller.perform_click_action()
-                    elif text in self.DOUBLE_CLICK:
-                        gesture_controller.perform_double_click_action()
-                    elif text in self.UP:
-                        gesture_controller.perform_scroll_action('up')
-                    elif text in self.DOWN:
-                        gesture_controller.perform_scroll_action('down')
-                    elif text in self.IN:
-                        gesture_controller.perform_zoom_action('in')
-                    elif text in self.OUT:
-                        gesture_controller.perform_zoom_action('out')
-                    elif text in self.DRAG:
-                        gesture_controller.perform_drag_action('drag')
-                    elif text in self.DROP:
-                        gesture_controller.perform_drag_action('drop')
+                    # if text in self.CLICK:
+                    #     gesture_controller.perform_click_action()
+                    # elif text in self.DOUBLE_CLICK:
+                    #     gesture_controller.perform_double_click_action()
+                    # elif text in self.UP:
+                    #     gesture_controller.perform_scroll_action('up')
+                    # elif text in self.DOWN:
+                    #     gesture_controller.perform_scroll_action('down')
+                    # elif text in self.IN:
+                    #     gesture_controller.perform_zoom_action('in')
+                    # elif text in self.OUT:
+                    #     gesture_controller.perform_zoom_action('out')
+                    # elif text in self.DRAG:
+                    #     gesture_controller.perform_drag_action('drag')
+                    # elif text in self.DROP:
+                    #     gesture_controller.perform_drag_action('drop')
 
         except KeyboardInterrupt:
             print("Stopping...")
@@ -96,10 +94,10 @@ class VoiceCommandController:
 
 
 if __name__ == "__main__":
-    from gesture import HandGestureController
-
-    gesture_controller = HandGestureController()
-    voice_controller = VoiceCommandController(gesture_controller)
+    # from gesture import HandGestureController
+    #
+    # gesture_controller = HandGestureController()
+    voice_controller = VoiceCommandController()
 
     try:
         voice_controller.run()

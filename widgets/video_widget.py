@@ -15,7 +15,7 @@ class VideoWidget(QWidget):
         self.gesture_thread = GestureThread()
         self.gesture_thread.start()
 
-        self.voice_recognition = VoiceRecognition()
+        self.voice_recognition = VoiceRecognition(self.gesture_thread.hand_gesture_controller)
 
         self.init_ui()
 

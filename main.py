@@ -76,6 +76,9 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage('프로그램 실행 완료', 3000)
         self.video_widget = VideoWidget()
 
+        self.voice_recognition = self.video_widget.voice_recognition
+        self.voice_recognition.listening_signal.connect(self.on_listening)
+
         self.menuBar().setNativeMenuBar(False)  # macOS 에서만
         filemenu = self.menuBar().addMenu("&File")
 
@@ -178,8 +181,8 @@ class MainWindow(QMainWindow):
     def toggle_speech_mode(self, state):
         if self.speech_toggle_switch.isChecked():
             self.video_widget.voice_recognition_start()
-            self.mic_indicator.setVisible(True)
-            self.statusBar().showMessage('음성 인식이 활성화되었습니다.', 3000)
+            # self.mic_indicator.setVisible(True)
+            self.statusBar().showMessage('음성 인식이 완전히 활성화될 때까지 잠시만 기다려주세요.', 3000)
         else:
             self.video_widget.voice_recognition_stop()
             self.mic_indicator.setVisible(False)
@@ -191,6 +194,11 @@ class MainWindow(QMainWindow):
     def toggle_speech_mode_shortcut(self):
         if self.speech_toggle_switch.isEnabled():
             self.speech_toggle_switch.setChecked(not self.speech_toggle_switch.isChecked())
+
+    def on_listening(self):
+        # Listening 신호를 수신했을 때 수행할 작업
+        self.statusBar().showMessage('음성 인식이 활성화되었습니다.', 3000)
+        self.mic_indicator.setVisible(True)
 
     def closeEvent(self, event):
         self.statusBar().showMessage('프로그램 종료 중... 잠시만 기다려주세요.')
