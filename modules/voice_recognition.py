@@ -1,8 +1,72 @@
-import os
-import subprocess
 import threading
-import sys
 from PySide6.QtCore import QObject, Signal
+import multiprocessing
+import pyaudio
+import torch
+import numpy as np
+import ssl
+from transformers import pipeline
+
+# Windows에서의 프로세스 생성 문제를 방지하기 위해 freeze_support 호출
+multiprocessing.freeze_support()
+
+
+def transformer_process(queue):
+    """음성 인식 및 결과를 처리하는 별도 프로세스."""
+    ssl._create_default_https_context = ssl._create_unverified_context
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    transcriber = pipeline(
+        "automatic-speech-recognition", model="openai/whisper-base", device=device
+    )
+    CHUNK = 4096
+    FORMAT = pyaudio.paInt16
+    CHANNELS = 1
+    RATE = 16000
+
+    p = pyaudio.PyAudio()
+
+    # 스트림 열기
+    stream = p.open(format=FORMAT,
+                    channels=CHANNELS,
+                    rate=RATE,
+                    input=True,
+                    frames_per_buffer=CHUNK)
+
+    print("Listening...")
+    queue.put("Listening...")
+
+    frames = []
+
+    try:
+        while True:
+            try:
+                data = stream.read(CHUNK, exception_on_overflow=False)
+                frames.append(np.frombuffer(data, np.int16))
+            except IOError as e:
+                print(f"Input overflowed: {e}")
+                continue
+
+            # 매 2초마다 데이터를 처리
+            if len(frames) * CHUNK >= RATE:
+                audio_input = np.concatenate(frames)
+                audio_input = audio_input.astype(np.float32) / np.max(np.abs(audio_input))
+                frames = []
+
+                # 모델로 텍스트 변환 및 유니코드 에러 처리 (Windows 에러)
+                try:
+                    text = transcriber({"sampling_rate": RATE, "raw": audio_input})["text"].strip()
+                    queue.put(text)
+                except UnicodeEncodeError as e:
+                    print("유니코드 깨짐")
+                    continue
+
+    except KeyboardInterrupt:
+        print("Stopping...")
+    finally:
+        if stream.is_active():
+            stream.stop_stream()
+        stream.close()
+        p.terminate()
 
 
 class VoiceRecognition(QObject):
@@ -11,6 +75,7 @@ class VoiceRecognition(QObject):
     def __init__(self, gesture_controller):
         super().__init__()
         self.gesture_controller = gesture_controller
+        self.result_queue = multiprocessing.Queue()
         self.process = None
         self.thread = None
         self.running = False
@@ -32,24 +97,16 @@ class VoiceRecognition(QObject):
     def start(self):
         if self.process is None:
             self.running = True
-            env = os.environ.copy()
-            env["PYTHONPATH"] = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-            self.process = subprocess.Popen([sys.executable, '-u', 'modules/transformer.py'],
-                                            stdout=subprocess.PIPE,
-                                            stderr=subprocess.PIPE,
-                                            stdin=subprocess.PIPE,
-                                            env=env,
-                                            text=True)
+            self.process = multiprocessing.Process(target=transformer_process, args=(self.result_queue,))
+            self.process.start()
             self.thread = threading.Thread(target=self.read_output)
             self.thread.start()
 
     def read_output(self):
         while self.running:
-            output = self.process.stdout.readline()
-            if output:
-                self.handle_result(output.strip())
-            else:
-                break
+            if not self.result_queue.empty():
+                result = self.result_queue.get()
+                self.handle_result(result)
 
     def handle_result(self, result):
         # 음성 인식 결과를 처리하는 코드
@@ -78,6 +135,7 @@ class VoiceRecognition(QObject):
         self.running = False
         if self.process is not None:
             self.process.terminate()
+            self.process.join()
             self.process = None
         if self.thread is not None:
             self.thread.join()
