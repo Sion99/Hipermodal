@@ -5,7 +5,7 @@ cd "$SCRIPT_DIR"
 
 # Check if project exists
 if [ -d "hipermodal" ]; then
-    echo "Hipermodal already exists. Delete it or install in diffrent directory."
+    echo "Hipermodal already exists. Delete it or install in a different directory."
     exit 1
 fi
 
@@ -14,6 +14,10 @@ echo "Cloning git repository..."
 # Clone git repository
 git clone https://github.com/Sion99/Hipermodal.git hipermodal
 cd hipermodal
+
+# Install portaudio using Homebrew
+echo "Installing portaudio via Homebrew..."
+brew install portaudio
 
 # Create virtual environment
 if [ ! -d ".venv" ]; then
@@ -32,4 +36,4 @@ pip install -r requirements.txt
 # Deactivate
 deactivate
 
-echo "Installation complete. To run this program, excute run.sh"
+echo "Installation complete. To run this program, execute run.sh"
