@@ -1,9 +1,18 @@
-import sys
+import sys, os
 from PySide6.QtGui import QAction, QCursor, QPainter, QColor, QMovie, QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow, QCheckBox, QVBoxLayout, QWidget, QLabel, QHBoxLayout, \
     QGridLayout
 from PySide6.QtCore import Qt, QPropertyAnimation, QPoint
 from widgets.video_widget import VideoWidget
+
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 
 class IndicatorLabel(QLabel):
@@ -71,7 +80,7 @@ class MainWindow(QMainWindow):
 
         self.setFixedSize(690, 800)
         self.setWindowTitle("Hipermodal")
-        self.setWindowIcon(QIcon('resources/icon.ico'))
+        self.setWindowIcon(QIcon(resource_path('icon.ico')))
 
         # Status Bar
         self.statusBar().showMessage('프로그램 실행 완료', 3000)
@@ -103,7 +112,7 @@ class MainWindow(QMainWindow):
 
         # 로딩 애니메이션 설정
         self.loading_label = QLabel(self)
-        self.loading_movie = QMovie('resources/loading.gif')
+        self.loading_movie = QMovie(resource_path('loading.gif'))
         self.loading_label.setMovie(self.loading_movie)
         self.loading_label.setFixedSize(22, 22)
 
