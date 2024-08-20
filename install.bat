@@ -1,9 +1,6 @@
 @echo off
 setlocal
 
-SET SCRIPT_DIR=%~dp0
-cd /d "%SCRIPT_DIR%"
-
 REM Check if project exists
 IF EXIST "hipermodal" (
     echo Hipermodal already exists. Delete it or install in diffrent directory.
